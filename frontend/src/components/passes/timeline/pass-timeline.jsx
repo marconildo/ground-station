@@ -54,6 +54,7 @@ const PassTimelineComponent = ({
   onToggleGeostationary = null, // New prop: callback for geostationary toggle
   highlightActivePasses = false, // New prop: if true, make active passes solid and inactive passes dashed/less opaque
   highlightTargetKey = '', // New prop: highlight pass curves for one mission/body target key
+  usePassAssignedColor = false, // New prop: use pass.color for stroke/fill when available
   forceTimeWindowStart = null, // New prop: force timeline window start (ISO datetime string)
   forceTimeWindowEnd = null, // New prop: force timeline window end (ISO datetime string)
   groundStationLocation = null,
@@ -1048,6 +1049,7 @@ const PassTimelineComponent = ({
                     totalGeoSats={totalGeoSats}
                     highlightActivePasses={highlightActivePasses}
                     isTargetSelectionActive={hasHighlightedTarget}
+                    usePassAssignedColor={usePassAssignedColor}
                   />
                 </Box>
               );

@@ -3,6 +3,11 @@ import { Box, Typography, useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Y_AXIS_WIDTH, X_AXIS_HEIGHT, Y_AXIS_TOP_MARGIN, elevationToYPercent } from './timeline-constants.jsx';
 
+const normalizeHexColor = (value) => {
+  const text = String(value || '').trim();
+  return /^#[0-9A-Fa-f]{6}$/.test(text) ? text.toUpperCase() : '';
+};
+
 /**
  * PassCurve component - Renders a single satellite pass as an SVG path
  */
@@ -17,6 +22,7 @@ export const PassCurve = ({
   totalGeoSats = null,
   highlightActivePasses = false,
   isTargetSelectionActive = false,
+  usePassAssignedColor = false,
 }) => {
   const theme = useTheme();
   const stateTokens = theme.palette.timelinePass || {
@@ -37,13 +43,18 @@ export const PassCurve = ({
   const shouldEmphasizeForSelection = isTargetSelectionActive && isSelectedTarget;
   const shouldForceSelectedLabel = shouldEmphasizeForSelection;
   const shouldRenderLabel = !suppressCurveLabels && (Boolean(labelType) || shouldForceSelectedLabel);
+  // Celestial passes carry an assigned mission/body color in `pass.color`; use it when enabled by parent.
+  const assignedPassColor = usePassAssignedColor ? normalizeHexColor(pass?.color) : '';
 
   const passColor = (() => {
+    if (assignedPassColor) return assignedPassColor;
     if (pass.isCurrent) return stateTokens.activeStroke;
     if (pass.peak_altitude < 10) return stateTokens.lowStroke;
     if (pass.peak_altitude <= 45) return stateTokens.mediumStroke;
     return stateTokens.highStroke;
   })();
+  const estimatedStrokeColor = assignedPassColor || stateTokens.estimatedStroke;
+  const estimatedFillColor = assignedPassColor || stateTokens.estimatedFill;
 
   // Split computed curve into positive-elevation segments.
   const computedPathDataSegments = [];
@@ -183,13 +194,22 @@ export const PassCurve = ({
           >
             <path
               d={estimatedPathData.fillPath}
-              fill={stateTokens.estimatedFill}
+              fill={estimatedFillColor}
+              fillOpacity={
+                assignedPassColor
+                  ? (
+                    isTargetSelectionActive
+                      ? (isSelectedTarget ? 0.16 : 0.03)
+                      : (highlightActivePasses ? (pass.isCurrent ? 0.14 : 0.08) : 0.12)
+                  )
+                  : 1
+              }
               stroke="none"
               style={{ pointerEvents: 'none' }}
             />
             <path
               d={estimatedPathData.linePath}
-              stroke={stateTokens.estimatedStroke}
+              stroke={estimatedStrokeColor}
               strokeWidth="0.7"
               strokeDasharray="2.2,2.2"
               fill="none"
@@ -317,12 +337,12 @@ export const PassCurve = ({
               transform: `translate(-50%, -${effectiveLabelVerticalOffset}%)`,
               fontSize: fontSize,
               fontWeight: 'bold',
-              color: hasElevationCurve ? passColor : stateTokens.estimatedStroke,
+              color: hasElevationCurve ? passColor : estimatedStrokeColor,
               backgroundColor: theme.palette.background.paper,
               padding: '2px 6px',
               borderRadius: '3px',
               border: (pass.isCurrent || shouldEmphasizeForSelection)
-                ? `1px solid ${hasElevationCurve ? passColor : stateTokens.estimatedStroke}`
+                ? `1px solid ${hasElevationCurve ? passColor : estimatedStrokeColor}`
                 : 'none',
               whiteSpace: 'nowrap',
               pointerEvents: 'none',

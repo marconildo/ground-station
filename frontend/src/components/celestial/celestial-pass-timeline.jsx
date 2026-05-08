@@ -69,6 +69,7 @@ const CelestialPassTimeline = ({
             showHoverElevation={false}
             highlightActivePasses={true}
             highlightTargetKey={normalizedSelectedTargetKey}
+            usePassAssignedColor={true}
             groundStationLocation={groundStationLocation}
             timezone={timezone}
         />
