@@ -329,9 +329,12 @@ async def edit_satellite(
         if not data or "norad_id" not in data:
             return {"success": False, "data": [], "error": "Missing satellite NORAD ID"}
 
-        update_data = {key: value for key, value in data.items() if key != "norad_id"}
+        orbit_payload = data.get("orbit") if isinstance(data, dict) else None
+        update_data = {
+            key: value for key, value in data.items() if key not in {"norad_id", "orbit"}
+        }
         edit_reply = await crud.satellites.edit_satellite(
-            dbsession, data["norad_id"], **update_data
+            dbsession, data["norad_id"], orbit=orbit_payload, **update_data
         )
 
         satellites = await crud.satellites.fetch_satellites(dbsession, None)
