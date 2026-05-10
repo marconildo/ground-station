@@ -17,22 +17,64 @@ const SatelliteIcon = ({
     const fallbackPath = resolveSatelliteFallbackPath(resolvedId);
     const numericSize = Number(size);
     const iconSize = Number.isFinite(numericSize) ? numericSize : (size || 24);
+    const [resolvedPath, setResolvedPath] = React.useState('');
     const [failed, setFailed] = React.useState(false);
-    const [loaded, setLoaded] = React.useState(false);
-    const [usingFallback, setUsingFallback] = React.useState(false);
-    const path = usingFallback ? fallbackPath : primaryPath;
-    const showImage = Boolean(path) && !failed;
+    const [loading, setLoading] = React.useState(false);
+    const showImage = Boolean(resolvedPath) && !failed;
     const spinnerSize = Number.isFinite(numericSize)
         ? Math.max(12, Math.min(24, Math.round(numericSize * 0.35)))
         : 18;
 
     React.useEffect(() => {
+        let cancelled = false;
+        const fallbackCandidate = fallbackPath && fallbackPath !== primaryPath ? fallbackPath : '';
+        const candidates = [primaryPath, fallbackCandidate].filter(Boolean);
+
+        if (candidates.length === 0) {
+            setResolvedPath('');
+            setFailed(false);
+            setLoading(false);
+            return () => {
+                cancelled = true;
+            };
+        }
+
+        setResolvedPath('');
         setFailed(false);
-        setLoaded(false);
-        setUsingFallback(false);
+        setLoading(true);
+
+        const tryLoadAt = (index) => {
+            if (cancelled) return;
+            if (index >= candidates.length) {
+                setResolvedPath('');
+                setFailed(true);
+                setLoading(false);
+                return;
+            }
+
+            const candidate = candidates[index];
+            const img = new Image();
+            img.onload = () => {
+                if (cancelled) return;
+                setResolvedPath(candidate);
+                setFailed(false);
+                setLoading(false);
+            };
+            img.onerror = () => {
+                if (cancelled) return;
+                tryLoadAt(index + 1);
+            };
+            img.src = candidate;
+        };
+
+        tryLoadAt(0);
+
+        return () => {
+            cancelled = true;
+        };
     }, [primaryPath, fallbackPath]);
 
-    if (!showImage) return null;
+    if (!showImage && !loading) return null;
 
     return (
         <Box
@@ -47,7 +89,7 @@ const SatelliteIcon = ({
                 ...sx,
             }}
         >
-            {!loaded ? (
+            {loading ? (
                 <CircularProgress
                     size={spinnerSize}
                     thickness={5}
@@ -60,19 +102,13 @@ const SatelliteIcon = ({
             ) : null}
             <Box
                 component="img"
-                src={path}
+                src={resolvedPath}
                 alt={alt}
                 loading="lazy"
-                onLoad={() => setLoaded(true)}
                 onError={() => {
-                    // Try normalized icon set first, then fallback to /satimages/full/{norad}.png.
-                    if (!usingFallback && fallbackPath && fallbackPath !== primaryPath) {
-                        setLoaded(false);
-                        setUsingFallback(true);
-                        return;
-                    }
-                    setLoaded(false);
+                    setResolvedPath('');
                     setFailed(true);
+                    setLoading(false);
                 }}
                 sx={{
                     position: 'absolute',
@@ -80,8 +116,7 @@ const SatelliteIcon = ({
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain',
-                    opacity: loaded ? 1 : 0,
-                    transition: 'opacity 120ms linear',
+                    opacity: showImage ? 1 : 0,
                 }}
             />
         </Box>
