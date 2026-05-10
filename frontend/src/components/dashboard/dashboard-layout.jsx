@@ -176,13 +176,11 @@ function DashboardEditor() {
                 </Stack>
             ) : (
                 <Tooltip title={t('layout.edit_layout')}>
-                    <IconButton size="small" onClick={handleEditClick} sx={{
-                        width: 40,
-                    }}>
-                        <BorderColorIcon sx={{
-                            color: theme.palette.mode === 'dark'
-                                ? theme.palette.primary.main
-                                : theme.palette.common.white
+                        <IconButton size="small" onClick={handleEditClick} sx={{
+                            width: 40,
+                        }}>
+                            <BorderColorIcon sx={{
+                            color: theme.palette.primary.main
                         }}/>
                     </IconButton>
                 </Tooltip>
@@ -664,7 +662,7 @@ function TimeDisplay() {
             <Typography variant="body2" sx={{fontSize: "0.65rem", fontWeight: "bold", fontFamily: "monospace"}}>
                 {formattedTime}
             </Typography>
-            <Typography variant="caption" sx={{fontSize: "0.65rem", fontFamily: "monospace", color: "#aaa"}}>
+            <Typography variant="caption" sx={{fontSize: "0.65rem", fontFamily: "monospace", color: "text.secondary"}}>
                 {isUTC ? "UTC" : timeZoneAbbr}
             </Typography>
         </Box>
