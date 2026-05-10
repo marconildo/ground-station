@@ -194,7 +194,9 @@ const LocationPage = () => {
     }, [hasLocation, normalizedLocation]);
 
     useEffect(() => {
-        if (!savedState && hasLocation) {
+        // Initialize the "saved baseline" only from backend-loaded locations.
+        // When the user selects a new point on the map for the first time, it should remain unsaved.
+        if (!savedState && hasLocation && locationId != null) {
             setSavedState({
                 lat: Number(location.lat),
                 lon: Number(location.lon),
