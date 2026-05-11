@@ -752,7 +752,7 @@ const AppSettingsForm = () => {
                     </SettingsSection>
                 ))}
 
-                <SettingsActionFooter statusText={footerStatusText} sticky>
+                <SettingsActionFooter statusText={footerStatusText} sticky mobileInline>
                     <Button variant="outlined" onClick={handleReset} disabled={saving || loading || !isDirty}>
                         {t('app_settings.reset', { defaultValue: 'Reset' })}
                     </Button>
